@@ -1,0 +1,78 @@
+clc
+clear
+close all
+
+% % AA 272 Project Code - Winter 2022
+% Custom filter
+
+
+load('walking_data.mat');
+
+% use the interpolated GPS data
+GPSx = GPSx2;
+GPSy = GPSy2;
+GPSz = GPSz2;
+
+% initial GPS position
+pos_i = [GPSx(1); GPSy(1); GPSz(1)];
+
+
+
+% initialize filter
+pos_curr = pos_i;
+filtered_positions = [];
+n = 50; % number of next GPS steps to measure
+w_IMU = 0.5; % relative weight of IMU data
+w_GPS = 1 - w_IMU; % relative weight of GPS data (w_IMU + w_GPS = 1)
+for i = 1:length(GPSx)-n % estimate subsequent positions based on GPS+IMU
+    nextGPS = [GPSx(i+1:i+n); GPSy(i+1:i+n); GPSz(i+1:i+n)]; % mean of next n GPS measurements
+    nextGPS = [mean(nextGPS(1,:)); mean(nextGPS(2,:)); mean(nextGPS(3,:))];
+
+    nextIMU = update_posIMU(pos_curr, [vX(i); vY(i); vZ(i)]); % next point only relying on IMU
+
+    midpoint = [(w_GPS*nextGPS(1) + w_IMU*nextIMU(1)); 
+                (w_GPS*nextGPS(2) + w_IMU*nextIMU(2)); 
+                (w_GPS*nextGPS(3) + w_IMU*nextIMU(3))];
+    filtered_positions(:,i) = midpoint;
+    pos_curr = midpoint;
+end
+
+% this loop is separate because I 
+pos_curr = pos_i;
+imu_only_positions = [];
+for i = 1:length(GPSx)-n % estimate subsequent positions based on GPS+IMU
+    nextIMU = update_posIMU(pos_curr, [vX(i); vY(i); vZ(i)]); % next point only relying on IMU
+    imu_only_positions(:,i) = nextIMU;
+    pos_curr = nextIMU;
+end
+%% Plotting
+% 2D plot
+figure
+plot(GPSx, GPSy)
+hold on; grid on;
+plot(imu_only_positions(1,:), imu_only_positions(2,:),'LineWidth',2)
+plot(filtered_positions(1,:), filtered_positions(2,:),'LineWidth',1)
+legend('GPS only','IMU only','GPS + IMU')
+xlabel('x-position'); ylabel('y-position')
+
+% % 3D plot
+% figure
+% plot3(GPSx, GPSy, GPSz)
+% hold on; grid on;
+% plot3(filtered_positions(1,:), filtered_positions(2,:), filtered_positions(3,:),'LineWidth',2)
+% legend('GPS only','GPS + IMU')
+% xlabel('x-position'); ylabel('y-position'); zlabel('z-position')
+
+
+
+
+
+
+
+function pos_next = update_posIMU(pos_curr, vel)
+% takes in a current position and velocity
+deltat = 0.1; % seconds
+pos_next = pos_curr + vel.*deltat;
+end
+
+
