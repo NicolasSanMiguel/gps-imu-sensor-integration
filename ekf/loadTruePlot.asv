@@ -1,0 +1,109 @@
+
+
+clc
+clear
+close all
+
+
+load('threeplots2error.mat');
+
+
+truegpx = gpxread('true_route.gpx');
+trueLat = truegpx.Latitude; %y
+trueLong = truegpx.Longitude; %x
+
+N=10;
+newPoints = [];
+for i = 1:length(trueLat)-1
+    toadd = [linspace(trueLat(i),trueLat(i+1),N);...
+             linspace(trueLong(i),trueLong(i+1),N)];
+    newPoints = [newPoints toadd];
+end
+
+err2plot = [];
+for w = 1:length(GPSx)
+% for each GPS position, calculate the distance to the nearest point on the
+% true path
+curr_distances = [];
+currGPS = [GPS_walk.lat GPS_walk.long];
+currGPS = currGPS(w,:)';
+for j = 1:length(newPoints)
+    difference = newPoints(:,j) - currGPS;
+%     difference(1,:)  = difference(1,:)*111.32;
+%     difference(2,:)  = 5000 * cosd( difference(2,:) ) / 360;
+    curr_distances(j) = norm( difference );
+end
+error = min(curr_distances);
+err2plot(w) = error;
+end
+
+
+
+
+% complementary filter error
+err2plotCOMP = [];
+for w = 1:length(outarr(1,:))
+% for each GPS position, calculate the distance to the nearest point on the
+% true path
+curr_distances = [];
+currPOS = [GPS_walk.lat GPS_walk.long];
+currPOS = currPOS(w,:)';
+for j = 1:length(newPoints)
+    difference = newPoints(:,j) - currPOS;
+%     difference(1,:)  = difference(1,:)*111.32;
+%     difference(2,:)  = 5000 * cosd( difference(2,:) ) / 360;
+    curr_distances(j) = norm( difference );
+end
+error = min(curr_distances);
+err2plotCOMP(w) = error;
+end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+% kalman filter error
+
+
+
+
+
+
+
+
+
+figure
+plot(err2plot*10^4,'LineWidth',2) % raw gps error
+grid on; hold on
+xlabel('Time [seconds]'); ylabel('Error [meters]')
+
+% complementary filter error 
+
+
+
+
+% kalman filter error 
+
+
+
+
+
+return
+
+
+%find the smallest distance and use that as an index into B:
+closest = B(find(distances==min(distances)),:);
+
+
+
+
+
