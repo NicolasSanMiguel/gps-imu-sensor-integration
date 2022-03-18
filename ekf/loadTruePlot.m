@@ -46,7 +46,11 @@ for w = 1:length(outarr(1,:))
 % for each GPS position, calculate the distance to the nearest point on the
 % true path
 curr_distances = [];
-[latty, longy, alt] = ecef2lla([outarr(1,w), outarr(2,w), outarr(3,w)]);
+lla = ecef2lla([outarr(1,w), outarr(2,w), outarr(3,w)]);
+latty = lla(1);
+longy = lla(2);
+alty = lla(3);
+
 currPOS = [latty; longy];
 for j = 1:length(newPoints)
     difference = newPoints(:,j) - currPOS;
@@ -65,7 +69,10 @@ for w = 1:length(outarr(1,:))
 % for each GPS position, calculate the distance to the nearest point on the
 % true path
 curr_distances = [];
-[latty, longy, alt] = ecef2lla([mu(1,w), mu(3,w), mu(5,w)]);
+lla = ecef2lla([mu(1,w), mu(3,w), mu(5,w)]);
+latty = lla(1);
+longy = lla(2);
+alty = lla(3);
 currPOS = [latty; longy];
 for j = 1:length(newPoints)
     difference = newPoints(:,j) - currPOS;
@@ -99,6 +106,20 @@ legend('Raw GPS','Complementary Filter','Kalman Filter','Location','best')
 title('Euclidean distance from true path for Manzanita Field Test')
 
 
+%% raw GPS
+rawGPSerr = err2plot*10^4;
+n = length(err2plot);
+RMSE_rawGPS = sqrt(  (1/n)*sum( rawGPSerr.^2 ) )
+
+% complementary
+comperr = err2plotCOMP*10^4;
+n = length(err2plotCOMP);
+RMSE_comp = sqrt(  (1/n)*sum( comperr.^2 ) )
+
+% kalman
+kferr = err2plotKF*10^4;
+n = length(err2plotKF);
+RMSE_kf = sqrt(  (1/n)*sum( kferr.^2 ) )
 
 
 
